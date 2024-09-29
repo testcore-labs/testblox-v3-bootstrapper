@@ -24,6 +24,11 @@ parser.add_argument(
   action='store_true',
   help='disables auto-update, this does not bypass client version/hash checking'
 )
+parser.add_argument(
+  '--ignore-not-installed', 
+  action='store_true',
+  help='testing purposes only'
+)
 
 # the nitty gritty
 parser.add_argument(

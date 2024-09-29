@@ -5,13 +5,25 @@ import args
 import executable
 import os
 
+client_types = {
+  "studio": 0,
+  "player": 1,
+}
+client_paths = {
+  "clients": os.path.join(executable.path, "clients"),
+  "player": os.path.join(executable.path, "clients", "player", "realclient.exe")
+}
+
+def is_installed():
+  return os.path.exists(client_paths["clients"])
+
 def get_version():
   return "version-faggotfag"
 
 def get_executable():
   # since this will sit top-level of the client directory,
   # we can just use the current directory directly
-  client_path = os.path.join(executable.path, "clients", "player", "realclient.exe")
+  client_path = client_paths["player"]
   if os.path.isfile(client_path):
     return client_path
   else:
@@ -52,6 +64,7 @@ def join_place(place_id):
       # run under Wine, report an error if Wine isn't
       # installed or doesn't exist under 
       # /usr/bin/wine or --wine-path.
+      log.do("joining")
       run_wine([""])
     case _: 
       log.do("unsupported os!")
