@@ -32,7 +32,7 @@ parser.add_argument(
 
 # the nitty gritty
 parser.add_argument(
-  '--place-id', 
+  '--place-id',
   type=int,
   help='joins a specific place'
 )
