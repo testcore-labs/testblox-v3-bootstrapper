@@ -13,7 +13,7 @@ client_types = {
 }
 client_paths = {
   "clients": os.path.join(executable.path, "clients"),
-  "player": os.path.join(executable.path, "clients", "player", "RobloxPlayerBeta.exe"),
+  "player": args.args.player_path or os.path.join(executable.path, "clients", "player", "RobloxPlayerBeta.exe"),
   "studio": os.path.join(executable.path, "clients", "studio", "robloxstudiobeta.exe")
 }
 
@@ -32,6 +32,7 @@ def get_custom_env():
   wine_prefix = args.args.wine_prefix or f"/home/{os.getlogin()}/.tstblx/"
   custom_env = os.environ.copy()
   custom_env["WINEPREFIX"] = wine_prefix
+  return custom_env
 
 def get_executable(client_type = "player"):
   # since this will sit top-level of the client directory,
@@ -52,10 +53,27 @@ def run_wine(custom_args = []):
   if not os.path.isfile(winetricks_path):
     log.throw("winetricks installation does not exist")
 
+  if not True:
+    winetricks_process = subprocess.call([
+    f"{winetricks_path}",
+    "-q",
+    #"dxvk",
+    "d3dx9_43",
+    "vcrun2005",
+    "corefonts",
+    "dotnet48"
+    ], env=get_custom_env())
 
-  #winetricks_process = subprocess.run([f"{wine_path}", get_executable(), *custom_args], env=get_custom_env())
-
-  wine_process = subprocess.run([f"{wine_path}", get_executable(), *custom_args], env=get_custom_env())
+  client_path = get_executable("player")
+  wine_process = subprocess.call([
+    f"{wine_path}",
+    f"{client_path}",
+    *custom_args
+  ],
+  env=get_custom_env(), 
+  stdout=subprocess.DEVNULL,
+  stderr=subprocess.STDOUT
+  )
 
 def handle(): #[os_supported, os_name]
   os_name = platform.system()
@@ -97,8 +115,8 @@ def join_place(place_id):
       joinscripturl = f"{args.args.baseurl or env.app.baseurl}/Game/PlaceLauncher.ashx?placeId={place_id}&request=RequestGame&isTeleport=true"
       log.do("joining")
       run_wine([
-        "--authenticationTicket", joinscripturl,
-        "--authenticationUrl", joinscripturl,
+        "--authenticationTicket", authenticationticket,
+        "--authenticationUrl", authenticationurl,
         "--joinScriptUrl", joinscripturl
       ])
     case _: 

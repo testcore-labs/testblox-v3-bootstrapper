@@ -4,5 +4,8 @@ from types import SimpleNamespace
 app = SimpleNamespace(
   name = "hello",
   debug = False,
-  baseurl = "http://localhost:8021"
+  baseurl = "http://tstblx.win"
+)
+discord = SimpleNamespace(
+  client_id = 1243169469488959588,
 )

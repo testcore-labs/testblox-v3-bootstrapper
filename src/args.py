@@ -10,6 +10,11 @@ parser.add_argument(
   help='sets the wine path | only for Linux/Darwin'
 )
 parser.add_argument(
+  '--winetricks-path', 
+  type=str,
+  help='sets the winetricks path | only for Linux/Darwin'
+)
+parser.add_argument(
   '--wine-prefix', 
   type=str,
   help='sets the wine prefix | only for Linux/Darwin'
@@ -28,6 +33,11 @@ parser.add_argument(
   '--ignore-not-installed', 
   action='store_true',
   help='testing purposes only'
+)
+parser.add_argument(
+  '--player-path', 
+  type=str,
+  help='sets custom player path'
 )
 
 # the nitty gritty

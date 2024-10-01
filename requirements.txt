@@ -1,0 +1,2 @@
+pypresence==4.3.0
+Requests==2.32.3

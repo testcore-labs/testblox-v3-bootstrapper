@@ -9,11 +9,9 @@ def debug(txt):
     print(txt)
 
 def throw(txt):
-  if env.app.debug:
-    print(txt)
-    sys.exit(1)
+  print(txt)
+  sys.exit(1)
 
 def exit(txt):
-  if env.app.debug:
-    print(txt)
-    sys.exit(0)
+  print(txt)
+  sys.exit(0)
