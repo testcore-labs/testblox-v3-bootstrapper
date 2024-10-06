@@ -10,10 +10,10 @@ import time
 RPC = pypresence.Presence(client_id=env.discord.client_id)
 
 connection_thread = None
-enabled_rpc = config.bootstrapper.get("discord", "rpc", "enabled")
+enabled_rpc = lambda : config.bootstrapper.get("discord", "rpc", "enabled")
 
 def update_async(**kwargs):
-  if not enabled_rpc:
+  if not enabled_rpc():
     return
   global connection_thread
   def do_connect():
@@ -26,14 +26,14 @@ def update_async(**kwargs):
   RPC.update(**kwargs)
 
 def update_sync(**kwargs):
-  if not enabled_rpc:
+  if not enabled_rpc():
     return
   thread = threading.Thread(target=update_async, args=kwargs, daemon=True)
   thread.start()
   return thread
 
 def update_loading():
-  if not enabled_rpc:
+  if not enabled_rpc():
     return
   update_async(
     large_image="testblox-t", large_text="loading",
@@ -44,7 +44,7 @@ def update_loading():
   )
 
 def update_playing(place_id):
-  if not enabled_rpc:
+  if not enabled_rpc():
     return
   game_info = fetch.game_info(place_id) # game/root_place
   party_size = None

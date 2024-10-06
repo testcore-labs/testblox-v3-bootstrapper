@@ -1,4 +1,5 @@
 import executable
+import config
 import env
 
 from pynput import keyboard
@@ -32,7 +33,7 @@ class page_MAIN(customtkinter.CTkFrame):
     #button = ctk.CTkButton(master=self, text="CTkButton", command=button_function)
     #button.place(relx=0.5, rely=0.5, anchor=ctk.CENTER)
 
-    self.progress_text = ctk.CTkLabel(self, text="", fg_color="transparent")
+    self.progress_text = ctk.CTkLabel(self, text="initializing...", fg_color="transparent")
     self.progress_text.place(relx=0.5, rely=0.75, anchor=ctk.CENTER)
 
     self.progressbar = ctk.CTkProgressBar(self, orientation="horizontal")
@@ -69,13 +70,50 @@ class app(ctk.CTk):
     self.settings = ctk.CTkToplevel(self)
     self.settings.title("settings")
     self.settings.resizable(False, False)
-    self.settings.minsize(400, 250)
-    self.settings.maxsize(400, 250)
+    self.settings.minsize(450, 250)
+    self.settings.maxsize(450, 250)
     self.settings.wm_attributes('-topmost', True)
-    self.settings.withdraw() # hide it
+    if not config.bootstrapper.get("first_time"):
+      self.settings.withdraw() # hide it
+    else:
+      config.bootstrapper.set(["first_time"], False)
+      self.settings.withdraw()
+      self.settings.iconify() 
+      self.settings.focus()
 
-    self.progress_text = ctk.CTkLabel(self.settings, text="sssss", fg_color="transparent")
-    self.progress_text.place(relx=0.5, rely=0.5, anchor=ctk.CENTER)
+    rpc_switch_var = ctk.StringVar(
+      value=config.bootstrapper.get("discord", "rpc", "enabled")
+    )
+    def rpc_switch_fn():
+      value = True if rpc_switch_var.get() else False
+      config.bootstrapper.set(["discord", "rpc", "enabled"], value)
+
+    rpc_switch = ctk.CTkSwitch(self.settings, 
+      text="enable RPC", 
+      command=rpc_switch_fn,
+      variable=rpc_switch_var, 
+      onvalue=True, 
+      offvalue=False
+    )
+
+    rpc_switch.place(rely=0.15, relx=0.185, anchor=ctk.CENTER)
+
+    self.info_restart = ctk.CTkLabel(self.settings,
+      text_color="#8a8a8a",
+      font=ctk.CTkFont(size=10),  
+      padx=7, 
+      text="changes will only show next start", 
+      fg_color="transparent"
+    )
+    self.info_restart.place(rely=1.0, relx=0, x=0, y=0, anchor=ctk.SW)
+    self.info_f8 = ctk.CTkLabel(self.settings,
+      text_color="#8a8a8a",
+      font=ctk.CTkFont(size=10),  
+      padx=7, 
+      text="you can close me with F8", 
+      fg_color="transparent"
+    )
+    self.info_f8.place(rely=1.0, relx=1.0, x=0, y=0, anchor=ctk.SE)
 
     def settings_key_press(key):
       if key == keyboard.Key.f8:

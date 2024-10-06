@@ -65,6 +65,7 @@ class bootstrapper_config(yaml_config):
   template_data = {
     "baseurl": "http://www.tstblx.win",
     "debug": True,
+    "first_time": True,
     "discord": {
       "rpc": {
         "enabled": False

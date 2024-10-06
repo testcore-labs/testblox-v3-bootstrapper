@@ -119,7 +119,9 @@ def join_place(place_id):
   os_supported, os_name, os_distro = handle() 
   if os_supported:
     log.debug(f"detected os: {os_name}")
-
+  dsc.update_playing(place_id)  
+  game_info = fetch.game_info(place_id)
+  window.a.page("main").progress_text.configure(text=f"joining {game_info["info"]["title"]}")
   authenticationticket = "ass"
   authenticationurl = f"{fetch.baseurl}/Login/Negotiate.ashx"
   joinscripturl = f"{fetch.baseurl}/Game/PlaceLauncher.ashx?placeId={place_id}&request=RequestGame&isTeleport=true"
@@ -128,7 +130,6 @@ def join_place(place_id):
   # actually, we'll need you :)
   match os_name:
     case "Linux":
-      dsc.update_playing(place_id)
       # run under Wine, report an error if Wine isn't
       # installed or doesn't exist under 
       # /usr/bin/wine or --wine-path.)
