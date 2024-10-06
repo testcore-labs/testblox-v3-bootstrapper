@@ -75,7 +75,7 @@ def download_client(latest_version, update_func = None):
       )
       progressbar.set(progress)
     else:
-      log.warn("the progress bar's total is/is below 0.. uhh")
+      log.warn("there's something seriously wrong with the progress bar")
   window.a.page("main").progress_text.configure(text="downloading content.zip")
   contentzip = download_and_save(
     f"{fetch.baseurl}/api/v1/client/deploy/{latest_version}/content.zip",
