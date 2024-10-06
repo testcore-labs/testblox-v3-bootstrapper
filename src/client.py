@@ -1,35 +1,39 @@
-import platform
-import log
-import subprocess
-import args
 import executable
+import log
+import env
+import dsc
+import window
+import fetch
+import config
+
+import platform
+import subprocess
+import time
 import os
 import sys
-import env
-
-client_types = {
-  "studio": 0,
-  "player": 1,
-}
-client_paths = {
-  "clients": os.path.join(executable.path, "clients"),
-  "player": args.args.player_path or os.path.join(executable.path, "clients", "player", "RobloxPlayerBeta.exe"),
-  "studio": os.path.join(executable.path, "clients", "studio", "robloxstudiobeta.exe")
-}
-
-def is_client_installed(client_type):
-  return os.path.exists(client_paths[client_type])
-def is_installed():
-  return os.path.exists(client_paths["clients"]) and is_client_installed("player") #and is_client_installed("studio")
 
 # of course you can spoof it but there's a check on the player itself
 # that'll prevent you from running an older version
-def get_version():
-  return "version-faggotfag"
+def get_version(client_type = "player"):
+  return config.memory.get("clients", client_type, "version")
+
+client_folder = os.path.join(executable.path, "clients")
+
+def get_client_path(client_type = "player"):
+  match client_type:
+    case "player":
+      return os.path.join(executable.path, "clients", f"{get_version("player")}", "player.exe")
+    case "studio": 
+      return os.path.join(executable.path, "clients", f"{get_version("studio")}", "studio.exe")
+
+def is_client_installed(client_type):
+  return os.path.exists(get_client_path(client_type))
+def is_installed():
+  return os.path.exists(client_folder) and is_client_installed("player") #and is_client_installed("studio")
 
 def get_custom_env():
   # we use a custom prefix just so we don't fuck up things
-  wine_prefix = args.args.wine_prefix or f"/home/{os.getlogin()}/.tstblx/"
+  wine_prefix = executable.args.wine_prefix or f"/home/{os.getlogin()}/.tstblx/"
   custom_env = os.environ.copy()
   custom_env["WINEPREFIX"] = wine_prefix
   return custom_env
@@ -37,15 +41,26 @@ def get_custom_env():
 def get_executable(client_type = "player"):
   # since this will sit top-level of the client directory,
   # we can just use the current directory directly
-  client_path = client_paths[client_type]
+  client_path = get_client_path(client_type)
   if not is_client_installed(client_type):
     log.throw(f"{client_path} does not exist.")
   else:
     return client_path
 
+def run(custom_args = []): 
+  client_path = get_executable("player")
+  process = subprocess.call([
+    f"{client_path}",
+    *custom_args
+  ],
+  #env=get_custom_env(), 
+  stdout=subprocess.DEVNULL,
+  stderr=subprocess.STDOUT
+  )
+
 def run_wine(custom_args = []): 
-  wine_path = args.args.wine_path or "/usr/bin/wine"
-  winetricks_path = args.args.winetricks_path or "/usr/bin/winetricks"
+  wine_path = executable.args.wine_path or "/usr/bin/wine"
+  winetricks_path = executable.args.winetricks_path or "/usr/bin/winetricks"
 
   if not os.path.isfile(wine_path):
     log.throw("wine installation does not exist")
@@ -105,19 +120,31 @@ def join_place(place_id):
   if os_supported:
     log.debug(f"detected os: {os_name}")
 
+  authenticationticket = "ass"
+  authenticationurl = f"{fetch.baseurl}/Login/Negotiate.ashx"
+  joinscripturl = f"{fetch.baseurl}/Game/PlaceLauncher.ashx?placeId={place_id}&request=RequestGame&isTeleport=true"
+  time.sleep(0.2) # just for looks
+  window.a.withdraw()
+  # actually, we'll need you :)
   match os_name:
     case "Linux":
+      dsc.update_playing(place_id)
       # run under Wine, report an error if Wine isn't
       # installed or doesn't exist under 
-      # /usr/bin/wine or --wine-path.
-      authenticationticket = "ass"
-      authenticationurl = f"{args.args.baseurl or env.app.baseurl}/Login/Negotiate.ashx"
-      joinscripturl = f"{args.args.baseurl or env.app.baseurl}/Game/PlaceLauncher.ashx?placeId={place_id}&request=RequestGame&isTeleport=true"
-      log.do("joining")
+      # /usr/bin/wine or --wine-path.)
+      log.info("launching with wine")
       run_wine([
         "--authenticationTicket", authenticationticket,
         "--authenticationUrl", authenticationurl,
         "--joinScriptUrl", joinscripturl
       ])
+    case "Windows":
+      log.info("launching natively")
+      run_native([
+        "--authenticationTicket", authenticationticket,
+        "--authenticationUrl", authenticationurl,
+        "--joinScriptUrl", joinscripturl
+      ])
     case _: 
+      window.a.page("main").progress_text.configure(text="unsupported os")
       log.throw("unsupported os!")

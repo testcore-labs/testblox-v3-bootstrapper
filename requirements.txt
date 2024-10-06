@@ -1,2 +1,9 @@
+customtkinter==5.2.2
+Pillow==10.4.0
+plumbum==1.8.3
+pyglet==2.0.17
 pypresence==4.3.0
+PyYAML==6.0.2
 Requests==2.32.3
+pynput==1.7.7
+pyxdg==0.28

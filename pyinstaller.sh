@@ -1,0 +1,1 @@
+~/.python/venv/bin/pyinstaller src/main.py --onefile -w --add-data "assets/:assets/" --hidden-import "PIL._tkinter_finder"

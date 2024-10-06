@@ -1,10 +1,13 @@
+import time
 from types import SimpleNamespace
 
 # hacky way to have an accesible dot attribute
+timings = SimpleNamespace(
+  start = int(time.time())
+)
 app = SimpleNamespace(
-  name = "hello",
-  debug = False,
-  baseurl = "http://tstblx.win"
+  version = "1.0.0-beta",
+  name = "testblox",
 )
 discord = SimpleNamespace(
   client_id = 1243169469488959588,
