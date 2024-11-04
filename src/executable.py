@@ -1,7 +1,8 @@
 # wow
 import sys, os
-
+import base64
 import argparse
+from urllib.parse import unquote
 
 xdg = False
 uri = "tstblx-bootstrapper"
@@ -10,6 +11,15 @@ if len(sys.argv) >= 1:
     if arg.startswith(uri):
       xdg = True
       arg = arg.replace(f"{uri}://", "")
+      try:
+        arg = bytes.decode(base64.urlsafe_b64decode(
+          bytes(unquote(arg), 
+            encoding="utf-8"
+          )), 'utf-8') # we decode from uri
+      except Exception as e:
+        print("ignore this if you are parsing a non-base64 string as an argument")
+        print("trying to decode uri from base64:", e)
+        pass 
       del sys.argv[i]
       sys.argv.extend(arg.split())
       
@@ -31,6 +41,16 @@ parser.add_argument(
   '--wine-prefix', 
   type=str,
   help='sets the wine prefix | only for Linux/Darwin'
+)
+parser.add_argument(
+  '--install-dependencies', 
+  nargs='+',
+  help='installs dependencies (only when wineprefix does not exist) | only for Linux/Darwin'
+)
+parser.add_argument(
+  '--reinstall-wineprefix', 
+  action='store_true',
+  help='DELETES wineprefix and reinstalls dependencies | only for Linux/Darwin'
 )
 parser.add_argument(
   '--baseurl', 
@@ -60,14 +80,19 @@ parser.add_argument(
 
 # the nitty gritty
 parser.add_argument(
-  '--place-id',
+  '--join-place',
   type=int,
-  help='joins a specific place'
+  help='joins a specific place with id in player'
+)
+parser.add_argument(
+  '--edit-place',
+  type=int,
+  help='edits a specific place with id in studio'
 )
 parser.add_argument(
   '--user-token', 
   type=str,
-  help='uses the user token given to join a place as that user'
+  help='used as a session token'
 )
 
 args, unknown = parser.parse_known_args(sys.argv)

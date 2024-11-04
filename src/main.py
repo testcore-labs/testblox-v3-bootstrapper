@@ -19,17 +19,18 @@ log.debug(f"path: {executable.path}")
 log.debug(f"exe: {executable.exe}")
 def main():
   dsc.update_loading()
-  if executable.args.place_id != None:
+  if executable.args.join_place != None:
     if not executable.args.ignore_not_installed and not installer.installed():
       installer.install()
+      update.do()
 
     # does an update if it finds a new version
     if not executable.args.disable_auto_update:
       update.do()
       
-    place_id = executable.args.place_id
+    place_id = executable.args.join_place
     if place_id:
-      client.join_place(executable.args.place_id)
+      client.join_place(place_id)
   else:
     # the first argument is the path to the script/executable
     if len(sys.argv) == 1:

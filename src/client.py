@@ -11,6 +11,7 @@ import subprocess
 import time
 import os
 import sys
+import shutil
 
 # of course you can spoof it but there's a check on the player itself
 # that'll prevent you from running an older version
@@ -68,26 +69,48 @@ def run_wine(custom_args = []):
   if not os.path.isfile(winetricks_path):
     log.throw("winetricks installation does not exist")
 
-  if not True:
-    winetricks_process = subprocess.call([
-    f"{winetricks_path}",
-    "-q",
-    #"dxvk",
+  process_args = {
+    'env': get_custom_env(), 
+    'stdout': subprocess.DEVNULL,
+    'stderr': subprocess.STDOUT
+  }
+  if config.bootstrapper.get("debug") or executable.args.debug:
+    del process_args['stdout']
+
+  wine_depends = [
     "d3dx9_43",
     "vcrun2005",
     "corefonts",
     "dotnet48"
-    ], env=get_custom_env())
+  ]; 
+  install_depends = executable.args.install_dependencies
+  if install_depends:
+    log.debug(f"got install dependencies: [{", ".join(install_depends)}]")
+    install_depends = install_depends.split()
+    wine_depends.extend(install_depends)
 
+  # safety
+  if executable.args.reinstall_wineprefix and os.path.isdir(process_args["env"]["WINEPREFIX"]):
+    log.warn(f"DELETING wineprefix `{process_args["env"]["WINEPREFIX"]}` in 3 seconds")
+    time.sleep(3)
+    log.info(f"deleting...")
+    shutil.rmtree(process_args["env"]["WINEPREFIX"])
+  
+  if not os.path.isdir(process_args["env"]["WINEPREFIX"]):
+    log.info(f"installing dependencies: [{", ".join(wine_depends)}]")
+    winetricks_process = subprocess.call([
+    f"{winetricks_path}",
+    "-q",
+    *wine_depends
+    ], env=get_custom_env())
+    
   client_path = get_executable("player")
   wine_process = subprocess.call([
     f"{wine_path}",
     f"{client_path}",
     *custom_args
   ],
-  env=get_custom_env(), 
-  stdout=subprocess.DEVNULL,
-  stderr=subprocess.STDOUT
+  **process_args
   )
 
 def handle(): #[os_supported, os_name]
@@ -119,10 +142,16 @@ def join_place(place_id):
   os_supported, os_name, os_distro = handle() 
   if os_supported:
     log.debug(f"detected os: {os_name}")
+
   dsc.update_playing(place_id)  
   game_info = fetch.game_info(place_id)
+  if not game_info["success"]:
+    log.throw("can't join game due to unsuccessful place request")
+    return
+
   window.a.page("main").progress_text.configure(text=f"joining {game_info["info"]["title"]}")
-  authenticationticket = "ass"
+  
+  authenticationticket = executable.args.user_token
   authenticationurl = f"{fetch.baseurl}/Login/Negotiate.ashx"
   joinscripturl = f"{fetch.baseurl}/Game/PlaceLauncher.ashx?placeId={place_id}&request=RequestGame&isTeleport=true"
   time.sleep(0.2) # just for looks

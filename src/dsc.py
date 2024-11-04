@@ -6,6 +6,7 @@ import env
 import pypresence
 import threading
 import time
+import log
 
 RPC = pypresence.Presence(client_id=env.discord.client_id)
 
@@ -47,6 +48,9 @@ def update_playing(place_id):
   if not enabled_rpc():
     return
   game_info = fetch.game_info(place_id) # game/root_place
+  if not game_info["success"]:
+    log.warn("failed setting `playing` presence")
+    return
   party_size = None
   if int(game_info["info"]["players"]) > 0 and int(game_info["info"]["max_players"]) > 0:
     party_size = [
