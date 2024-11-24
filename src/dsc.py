@@ -11,6 +11,7 @@ import log
 RPC = pypresence.Presence(client_id=env.discord.client_id)
 
 connection_thread = None
+connection_successful = False
 enabled_rpc = lambda : config.bootstrapper.get("discord", "rpc", "enabled")
 
 def update_async(**kwargs):
@@ -18,13 +19,27 @@ def update_async(**kwargs):
     return
   global connection_thread
   def do_connect():
-    RPC.connect()
+    global connection_successful
+    try:
+      log.debug("trying to connect RPC")
+      rpc_connect = RPC.connect()
+      connection_successful = True
+      log.debug(f"RPC connect: {rpc_connect}")
+    except Exception as error:
+      connection_successful = False
+      if isinstance(error, pypresence.exceptions.DiscordNotFound):
+        log.warn("Discord is not launched, RPC ignored") 
+      else:
+        log.warn(f"unknown error occured, {error}")
   if connection_thread is None:
     connection_thread = threading.Thread(target=do_connect, daemon=True)
     connection_thread.start()
   
   connection_thread.join()
-  RPC.update(**kwargs)
+  if connection_successful:
+    RPC.update(**kwargs)
+  else:
+    log.warn("RPC could not be set as connection was unsuccessful.")
 
 def update_sync(**kwargs):
   if not enabled_rpc():
